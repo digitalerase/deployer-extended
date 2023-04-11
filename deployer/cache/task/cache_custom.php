@@ -34,7 +34,7 @@ task('cache:clear', function () {
         writeln('<info>Finished the Task</info>');
     } else {
         // Running remotely - Must use run()
-        writeln('Running stagin/production');
+        writeln('Running staging/production');
         invoke('cache:clear:litespeed');
         invoke('cache:clear:autoptimize');
         invoke('cache:clear:w3totalcache');
