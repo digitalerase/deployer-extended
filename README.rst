@@ -416,4 +416,4 @@ Task configuration variables:
 Changelog
 ---------
 
-See https://github.com/sourcebroker/deployer-extended/blob/master/CHANGELOG.rst
+See https://github.com/digitalerase/deployer-extended/blob/master/CHANGELOG.rst
