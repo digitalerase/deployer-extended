@@ -36,6 +36,7 @@ task('cache:clear', function () {
         // Running remotely - Must use run()
         writeln('Running staging/production');
         invoke('cache:clear:litespeed');
+        invoke('cache:clear:lsphp');
         invoke('cache:clear:autoptimize');
         invoke('cache:clear:w3totalcache');
         invoke('cache:clear:wpcore');
@@ -61,6 +62,16 @@ task('cache:clear:litespeed', function () {
         writeln('<error>Litespeed Cache is not available - Ignoring command</error>');
     }
 })->desc('Clearing the cache for Litespeed Cache');
+
+
+task('cache:clear:lsphp', function () {
+        run('cd {{deploy_path}}');
+        run('cd ..');
+        run('cd ..');
+        run('touch .lsphp_restart.txt');
+        writeln('lsphp restarted');
+})->desc('Restarting php for Litespeed');
+
 
 
 task('cache:clear:autoptimize', function () {
