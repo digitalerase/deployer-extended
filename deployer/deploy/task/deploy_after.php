@@ -333,7 +333,7 @@ task('custom:upload_env', function () {
 
     // Remove files from downloads
     if ( $env_file_exists ) {
-        // unlink($local_root_path . '/deploy-files/downloads/.env');
+        unlink($local_root_path . '/deploy-files/downloads/.env');
     }
 
     info('Done custom:upload_env');
