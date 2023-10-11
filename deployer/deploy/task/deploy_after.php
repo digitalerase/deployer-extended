@@ -13,7 +13,7 @@ task('deploy:after_deploy', function () {
 
         // ######## Running after deploy staging ########
 
-        writeln('Running after_deploy staging');
+        // writeln('Running after_deploy staging');
 
         cd('{{deploy_path}}');
         $remote_base_path = run('pwd');
@@ -21,7 +21,7 @@ task('deploy:after_deploy', function () {
         // Download all files
         $remote_shared_folder = $remote_base_path . '/shared';
 
-        writeln('Downloading htpasswd and htaccess files');
+        // writeln('Downloading htpasswd and htaccess files');
 
         // Setting the local root path from /vendors/digitalerase/deployer-extended/deployer/deploy/task
         // Note: This is the same level as deploy.php (Project root folder)
@@ -41,20 +41,38 @@ task('deploy:after_deploy', function () {
             mkdir($templates_folder, 0777, true);
         }
 
+        // Download htpasswd file
+        writeln('Downloading htpasswd file');
         try {
             download($remote_shared_folder . '/web/.htpasswd', $local_root_path . '/deploy-files/downloads/.htpasswd');
         } catch (\Throwable $th) {
             warning('Downloading htpasswd file failed');
         }
+
+        // Download htaccess file
+        writeln('Downloading htaccess file');
         try {
             download($remote_shared_folder . '/web/.htaccess', $local_root_path . '/deploy-files/downloads/.htaccess');
         } catch (\Throwable $th) {
             warning('Downloading htaccess file failed');
         }
 
+        // Download wordfence-waf.php file
+        writeln('Downloading wordfence-waf.php file');
+        try {
+            download($remote_shared_folder . '/web/wp/wordfence-waf.php', $local_root_path . '/deploy-files/downloads/wordfence-waf.php');
+        } catch (\Throwable $th) {
+            warning('Downloading wordfence-waf.php file failed');
+        }
+        // Check if .user.ini and wordfence-waf.php files exist
+        // $user_ini_file_exists = file_exists($local_root_path . '/deploy-files/downloads/.user.ini');
+        
         // Check if htpasswd and htaccess files exists
         $htpasswd_file_exists = file_exists($local_root_path . '/deploy-files/downloads/.htpasswd');
         $htaccess_file_exists = file_exists($local_root_path . '/deploy-files/downloads/.htaccess');
+        $wordfence_waf_file_exists = file_exists($local_root_path . '/deploy-files/downloads/wordfence-waf.php');
+
+        writeln('Checking files');
 
         if ($htpasswd_file_exists) {
             // File exists
@@ -62,7 +80,7 @@ task('deploy:after_deploy', function () {
             $htpasswd_file_contents = file_get_contents($local_htpasswd_file);
             preg_match_all("/digitalera/", $htpasswd_file_contents, $matches);
             if (count($matches[0]) > 0) {
-                writeln('htpasswd file contains digitalera, do nothing');
+                writeln('<info>htpasswd file contains digitalera, do nothing</info>');
             } else {
                 writeln('htpasswd file does not contain digitalera');
                 // Append digitalera to htpasswd file
@@ -95,7 +113,7 @@ task('deploy:after_deploy', function () {
             $htaccess_file_contents = file_get_contents($local_htaccess_file);
             preg_match_all("/\#\sBEGIN\sCustom\sAuth\s\.htaccess/", $htaccess_file_contents, $matches);
             if (count($matches[0]) > 0) {
-                writeln('htaccess file contains Custom Auth .htaccess, do nothing');
+                writeln('<info>htaccess file contains Custom Auth .htaccess, do nothing</info>');
             } else {
                 writeln('htaccess file does not contain Custom Auth .htaccess');
                 // Append Custom Auth .htaccess to htaccess file
@@ -129,6 +147,44 @@ task('deploy:after_deploy', function () {
             // upload($local_root_path . '/deploy-files/templates/.htaccess', $remote_shared_folder . '/web/.htaccess');
         }
 
+        
+        if ( $wordfence_waf_file_exists ) {
+            // File exists
+            writeln('<info>The wordfence-waf.php file exists, do nothing</info>');
+        } else {
+            // File does not exist
+            writeln('The wordfence-waf.php file does not exist');
+            writeln('uploading the template wordfence-waf.php file');
+            // Check if the template file exists
+            $template_wordfence_waf_file_exists = file_exists($local_root_path . '/deploy-files/templates/wordfence-waf.php');
+            if ($template_wordfence_waf_file_exists) {
+                // Local file exists
+                // Check if remote wp folder exists
+                try {
+                    upload($local_root_path . '/deploy-files/templates/wordfence-waf.php', $remote_shared_folder . '/web/wp/wordfence-waf.php');
+                } catch (\Throwable $th) {
+                    // Failed to upload file
+                    warning('Failed to upload wordfence-waf.php file');
+                    // Try to create wp folder
+                    writeln('Trying to create wp folder');
+                    cd($remote_shared_folder . '/web');
+                    run('mkdir wp');
+
+                    // Retry upload
+                    writeln('Retrying to upload wordfence-waf.php file');
+                    try {
+                        upload($local_root_path . '/deploy-files/templates/wordfence-waf.php', $remote_shared_folder . '/web/wp/wordfence-waf.php');
+                    } catch (\Throwable $th) {
+                        // Failed to upload file
+                        warning('Failed 2nd attempt to upload wordfence-waf.php file');
+                    }
+                }
+            } else {
+                // File does not exist
+                writeln('template wordfence-waf.php file does not exist');
+            }
+        }
+
         // Remove files from downloads
         if ($htpasswd_file_exists) {
             unlink($local_root_path . '/deploy-files/downloads/.htpasswd');
@@ -136,13 +192,16 @@ task('deploy:after_deploy', function () {
         if ($htaccess_file_exists) {
             unlink($local_root_path . '/deploy-files/downloads/.htaccess');
         }
+        if ($wordfence_waf_file_exists) {
+            unlink($local_root_path . '/deploy-files/downloads/wordfence-waf.php');
+        }
 
-        info('Done running after_deploy staging');
+        // info('Done running after_deploy staging');
     } elseif ($currentHostAlias == 'production') {
 
         // ######## Running after deploy production ########
 
-        writeln('Running after_deploy staging');
+        // writeln('Running after_deploy staging');
 
         cd('{{deploy_path}}');
 
@@ -151,7 +210,7 @@ task('deploy:after_deploy', function () {
         // Download all files
         $remote_shared_folder = $remote_base_path . '/shared';
 
-        writeln('Downloading .user.ini and wordfence-waf.php files');
+        // writeln('Downloading .user.ini and wordfence-waf.php files');
 
         // Setting the local root path from /vendors/digitalerase/deployer-extended/deployer/deploy/task
         // Note: This is the same level as deploy.php (Project root folder)
@@ -172,6 +231,7 @@ task('deploy:after_deploy', function () {
         }
 
         // Download .user.ini file
+        writeln('Downloading .user.ini file');
         try {
             download($remote_shared_folder . '/web/.user.ini', $local_root_path . '/deploy-files/downloads/.user.ini');
         } catch (\Throwable $th) {
@@ -179,6 +239,7 @@ task('deploy:after_deploy', function () {
         }
 
         // Download wordfence-waf.php file
+        writeln('Downloading wordfence-waf.php file');
         try {
             download($remote_shared_folder . '/web/wp/wordfence-waf.php', $local_root_path . '/deploy-files/downloads/wordfence-waf.php');
         } catch (\Throwable $th) {
@@ -188,6 +249,8 @@ task('deploy:after_deploy', function () {
         // Check if .user.ini and wordfence-waf.php files exist
         $user_ini_file_exists = file_exists($local_root_path . '/deploy-files/downloads/.user.ini');
         $wordfence_waf_file_exists = file_exists($local_root_path . '/deploy-files/downloads/wordfence-waf.php');
+
+        writeln('Checking files');
 
         if ( $user_ini_file_exists ) {
             // File exists
@@ -199,7 +262,7 @@ task('deploy:after_deploy', function () {
             preg_match_all("/shared\/web\/wp\/wordfence-waf\.php/", $user_ini_content, $matches);
             if (count($matches[0]) > 0) {
                 // The .user.ini points the wordfence-waf.php file to the shared wp folder
-                writeln('The .user.ini points the wordfence-waf.php file to the shared wp folder, do nothing');
+                writeln('<info>The .user.ini points the wordfence-waf.php file to the shared wp folder, do nothing</info>');
             } else {
                 // The .user.ini does not point the wordfence-waf.php file to the shared wp folder
                 writeln('The .user.ini does not point the wordfence-waf.php file to the shared wp folder');
@@ -232,7 +295,7 @@ task('deploy:after_deploy', function () {
 
         if ( $wordfence_waf_file_exists ) {
             // File exists
-            writeln('The wordfence-waf.php file exists, do nothing');
+            writeln('<info>The wordfence-waf.php file exists, do nothing</info>');
         } else {
             // File does not exist
             writeln('The wordfence-waf.php file does not exist');
@@ -265,7 +328,7 @@ task('deploy:after_deploy', function () {
 after('deploy', 'deploy:after_deploy');
 
 task('custom:upload_env', function () {
-    writeln('Running custom:upload_env');
+    // writeln('Running custom:upload_env');
     $currentHost = currentHost();
     $currentHostAlias = $currentHost->getAlias();
 
@@ -289,6 +352,7 @@ task('custom:upload_env', function () {
     $remote_env_file = $remote_shared_folder . '/.env';
 
     // Download .env file
+    writeln('Downloading .env file');
     try {
         download($remote_env_file, $local_root_path . '/deploy-files/downloads/.env');
     } catch (\Throwable $th) {
@@ -300,9 +364,11 @@ task('custom:upload_env', function () {
 
     $file_size = filesize($local_root_path . '/deploy-files/downloads/.env');
 
+    writeln('Checking .env file');
+
     if ( $env_file_exists && $file_size > 0 ) {
         // File exists and is not empty, do nothing
-        writeln('The .env file exists and is not empty, do nothing');
+        writeln('<info>The .env file exists and is not empty, do nothing</info>');
     } else {
         // File does not exist, upload it (.env.staging or .env.production)
         if ($currentHostAlias === 'staging') {
@@ -337,7 +403,7 @@ task('custom:upload_env', function () {
         unlink($local_root_path . '/deploy-files/downloads/.env');
     }
 
-    info('Done custom:upload_env');
+    // info('Done custom:upload_env');
 });
 
 after('deploy:vendors', 'custom:upload_env');
