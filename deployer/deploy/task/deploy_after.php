@@ -293,18 +293,18 @@ task('deploy:after_deploy', function () {
                     // Failed to upload file
                     warning('Failed to upload .user.ini file');
                     // Try to create wp folder
-                    writeln('Trying to create wp folder');
-                    cd($remote_shared_folder . '/web');
-                    run('mkdir wp');
+                    // writeln('Trying to create wp folder');
+                    // cd($remote_shared_folder . '/web');
+                    // run('mkdir wp');
 
-                    // Retry upload
-                    writeln('Retrying to upload .user.ini file');
-                    try {
-                        upload($local_root_path . '/deploy-files/templates/.user.ini', $remote_shared_folder . '/web/.user.ini');
-                    } catch (\Throwable $th) {
-                        // Failed to upload file
-                        warning('Failed 2nd attempt to upload .user.ini file');
-                    }
+                    // // Retry upload
+                    // writeln('Retrying to upload .user.ini file');
+                    // try {
+                    //     upload($local_root_path . '/deploy-files/templates/.user.ini', $remote_shared_folder . '/web/.user.ini');
+                    // } catch (\Throwable $th) {
+                    //     // Failed to upload file
+                    //     warning('Failed 2nd attempt to upload .user.ini file');
+                    // }
                 }
                 // upload($local_root_path . '/deploy-files/templates/.user.ini', $remote_shared_folder . '/web/.user.ini');
             } else {
