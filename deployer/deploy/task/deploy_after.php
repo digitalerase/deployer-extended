@@ -302,6 +302,7 @@ task('custom:upload_env', function () {
 
     if ( $env_file_exists && $file_size > 0 ) {
         // File exists and is not empty, do nothing
+        writeln('The .env file exists and is not empty, do nothing');
     } else {
         // File does not exist, upload it (.env.staging or .env.production)
         if ($currentHostAlias === 'staging') {
