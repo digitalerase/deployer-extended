@@ -304,7 +304,27 @@ task('deploy:after_deploy', function () {
             $template_wordfence_waf_file_exists = file_exists($local_root_path . '/deploy-files/templates/wordfence-waf.php');
             if ($template_wordfence_waf_file_exists) {
                 // File exists
-                upload($local_root_path . '/deploy-files/templates/wordfence-waf.php', $remote_shared_folder . '/web/wp/wordfence-waf.php');
+                // Check if remote wp folder exists
+                try {
+                    upload($local_root_path . '/deploy-files/templates/wordfence-waf.php', $remote_shared_folder . '/web/wp/wordfence-waf.php');
+                } catch (\Throwable $th) {
+                    // Failed to upload file
+                    warning('Failed to upload wordfence-waf.php file');
+                    // Try to create wp folder
+                    writeln('Trying to create wp folder');
+                    cd($remote_shared_folder . '/web');
+                    run('mkdir wp');
+
+                    // Retry upload
+                    writeln('Retrying to upload wordfence-waf.php file');
+                    try {
+                        upload($local_root_path . '/deploy-files/templates/wordfence-waf.php', $remote_shared_folder . '/web/wp/wordfence-waf.php');
+                    } catch (\Throwable $th) {
+                        // Failed to upload file
+                        warning('Failed 2nd attempt to upload wordfence-waf.php file');
+                    }
+                }
+                // upload($local_root_path . '/deploy-files/templates/wordfence-waf.php', $remote_shared_folder . '/web/wp/wordfence-waf.php');
             } else {
                 // File does not exist
                 writeln('template wordfence-waf.php file does not exist');
