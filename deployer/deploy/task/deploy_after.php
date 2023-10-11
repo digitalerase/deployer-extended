@@ -286,7 +286,27 @@ task('deploy:after_deploy', function () {
             $template_user_ini_file_exists = file_exists($local_root_path . '/deploy-files/templates/.user.ini');
             if ($template_user_ini_file_exists) {
                 // File exists
-                upload($local_root_path . '/deploy-files/templates/.user.ini', $remote_shared_folder . '/web/.user.ini');
+                // Check if remote wp folder exists
+                try {
+                    upload($local_root_path . '/deploy-files/templates/.user.ini', $remote_shared_folder . '/web/.user.ini');
+                } catch (\Throwable $th) {
+                    // Failed to upload file
+                    warning('Failed to upload .user.ini file');
+                    // Try to create wp folder
+                    writeln('Trying to create wp folder');
+                    cd($remote_shared_folder . '/web');
+                    run('mkdir wp');
+
+                    // Retry upload
+                    writeln('Retrying to upload .user.ini file');
+                    try {
+                        upload($local_root_path . '/deploy-files/templates/.user.ini', $remote_shared_folder . '/web/.user.ini');
+                    } catch (\Throwable $th) {
+                        // Failed to upload file
+                        warning('Failed 2nd attempt to upload .user.ini file');
+                    }
+                }
+                // upload($local_root_path . '/deploy-files/templates/.user.ini', $remote_shared_folder . '/web/.user.ini');
             } else {
                 // File does not exist
                 writeln('template .user.ini file does not exist');
