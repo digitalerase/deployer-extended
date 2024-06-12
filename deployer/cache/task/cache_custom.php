@@ -35,12 +35,14 @@ task('cache:clear', function () {
     } else {
         // Running remotely - Must use run()
         writeln('Running staging/production');
+        if ($currentHost->getAlias() != 'production') {
+            invoke('cache:clear:elementorcss');
+        }
         invoke('cache:clear:litespeed');
         invoke('cache:clear:lsphp');
         invoke('cache:clear:autoptimize');
         invoke('cache:clear:w3totalcache');
         invoke('cache:clear:wpcore');
-        invoke('cache:clear:elementorcss');
         writeln('<info>Finished the Task</info>');
     }
 })->desc('Clearing the cache for Litespeed Cache, Autoptimize, W3 Total Cache, WP Core, and flushes the css for Elementor');
